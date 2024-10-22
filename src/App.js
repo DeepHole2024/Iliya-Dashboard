@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import Header from './Components/Header';
 import Content from './Components/Content';
-import ArticleTable from './Components/Article';
 
 function App() {
   return (

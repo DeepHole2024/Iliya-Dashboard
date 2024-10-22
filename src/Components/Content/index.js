@@ -11,6 +11,9 @@ import BackTo from '../../Asssets/back_to.png';
 import { useParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow, subDays } from 'date-fns';
+import Face2 from '../../Asssets/face2.png'
+import Face1 from '../../Asssets/face1.svg';
+import Face from '../../Asssets/face.svg';
 import ReactPaginate from 'react-paginate';
 
 // Utility function to fetch data from the API
@@ -33,13 +36,22 @@ const API_URL = 'https://ai.oigetit.com/AI71/Articles';
 
 // Function to determine sentiment label, emoji, and color
 const getSentimentIcon = (sentiment) => {
-  if (sentiment < -10) return { icon: '😡😡😡', label: 'Very Negative', color: 'red' };
-  if (sentiment < 0) return { icon: '😠😠', label: 'Negative', color: 'red' };
-  if (sentiment === 0) return { icon: '😐', label: 'Neutral', color: 'yellow' };
-  if (sentiment > 0 && sentiment <= 10) return { icon: '😊😊', label: 'Positive', color: 'green' };
-  if (sentiment > 10) return { icon: '😁😁😁', label: 'Very Positive', color: 'green' };
-  return { icon: '❓', label: 'Unknown', color: 'gray' };
+  console.log("happiness", sentiment)
+  if (sentiment < -3) return { icon: <div><img src={Face2} />  <img src={Face2} /></div>, label: "Very Negative", color: "red" };
+  if (sentiment < 0 && sentiment >= -3) return { icon: <div> <img src={Face2} /></div>, label: "Negative", color: "red" };
+  if (sentiment === 0) return { icon: <div><img src={Face1} /></div>, label: "Neutral", color: "yellow" };
+  if (sentiment > 0 && sentiment <= 5) return { icon: <div><img src={Face} /></div>, label: "Positive", color: "green" };
+  if (sentiment > 5) return { icon: <div><img src={Face} /><img src={Face} /></div>, label: "Very Positive", color: "green" };
+  return { icon: "❓", label: "Unknown", color: "gray" };
 };
+// const getSentimentIcon = (sentiment) => {
+//   if (sentiment < -10) return { icon: '😡😡😡', label: 'Very Negative', color: 'red' };
+//   if (sentiment < 0) return { icon: '😠😠', label: 'Negative', color: 'red' };
+//   if (sentiment === 0) return { icon: '😐', label: 'Neutral', color: 'yellow' };
+//   if (sentiment > 0 && sentiment <= 10) return { icon: '😊😊', label: 'Positive', color: 'green' };
+//   if (sentiment > 10) return { icon: '😁😁😁', label: 'Very Positive', color: 'green' };
+//   return { icon: '❓', label: 'Unknown', color: 'gray' };
+// };
 
 function Content() {
   const [sentimentData, setSentimentData] = useState(null);
@@ -85,7 +97,7 @@ function Content() {
       Sort: 1,
       Size: 1000,
     };
-    
+
     // Fetch sentiment data
     fetchApiData('https://ai.oigetit.com/AI71/Histogram', params).then((data) => {
       if (data) {
@@ -109,7 +121,7 @@ function Content() {
   const fetchArticles = async (currentPage, dateRange) => {
     const { StartDate, EndDate } = calculateDateRange(dateRange);
     try {
-      const response = await axios.get(API_URL,{
+      const response = await axios.get(API_URL, {
         params: {
           json: JSON.stringify({
             StartDate: StartDate,
@@ -117,11 +129,12 @@ function Content() {
             Query: activeFilter,
             Sort: 1,
           })
-        }});
+        }
+      });
 
       if (response.data.result) {
         setArticles(response.data.result); // Assuming API returns 'result' array
-        setTotalPages(Math.ceil(response.data.result.length / articlesPerPage)); // Assuming 'total' returns total count of articles
+        setTotalPages(Math.floor(response.data.result.length / articlesPerPage)); // Assuming 'total' returns total count of articles
       } else {
         console.error('No article data available');
       }
@@ -142,7 +155,7 @@ function Content() {
 
   useEffect(() => {
     handleFetchSentimentData(activeFilter, activeMenu);
-  },[activeMenu])
+  }, [activeMenu])
 
   // Handle page change for pagination
   const handlePageClick = (data) => {
@@ -240,15 +253,15 @@ function Content() {
         {/* Main Content for charts and data */}
         <div className="main-content">
           <div className="MediaMentionsChart">
-            {sentimentData && <FirstChart sentimentData={sentimentData} activeMenu = {activeMenu} activeFilter={activeFilter}/>}
+            {sentimentData && <FirstChart sentimentData={sentimentData} activeMenu={activeMenu} activeFilter={activeFilter} />}
           </div>
           <div className="MediaMentionsChart">
-            {sentimentData && <MediaMentionsChart sentimentData={sentimentData} activeFilter={activeFilter} activeMenu={activeMenu}/>}
+            {sentimentData && <MediaMentionsChart sentimentData={sentimentData} activeFilter={activeFilter} activeMenu={activeMenu} />}
             <span>Weeks</span>
           </div>
           <div className="ChartContainer">
             <div className="MediaMentionsChart ResponsiveWidth" style={{ flexBasis: '50%' }}>
-              {sentimentData && <SecondChart sentimentData={sentimentData} activeMenu={activeMenu} activeFilter={activeFilter}/>}
+              {sentimentData && <SecondChart sentimentData={sentimentData} activeMenu={activeMenu} activeFilter={activeFilter} />}
             </div>
             <div
               className="MediaMentionsChart ResponsiveWidth"
@@ -300,17 +313,14 @@ function Content() {
             </thead>
             <tbody>
               {articles &&
-                articles.slice(page*10, (page+1)*10).map((article, index) => {
+                articles.slice(page * 10, (page + 1) * 10).map((article, index) => {
                   const sentimentInfo = getSentimentIcon(article.happiness);
                   return (
                     <tr key={index}>
                       <td>
-                        <span
-                          style={{ color: sentimentInfo.color, fontSize: '24px' }}
-                          title={sentimentInfo.label}
-                        >
+                        <div style={{display:'flex', justifyContent: 'center'}}>
                           {sentimentInfo.icon}
-                        </span>
+                        </div>
                       </td>
                       <td>{parseInt(article.trusted * 100) + "%"}</td>
                       <td><a href={article.imagelink} target='_blank'>{article.title}</a></td>
